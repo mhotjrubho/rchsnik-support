@@ -4,90 +4,50 @@ import ForumSimulator from './components/ForumSimulator';
 const App: React.FC = () => {
   const [openItem, setOpenItem] = useState<string | null>('sim-create');
 
-  const toggle = (id: string) => {
-    setOpenItem(openItem === id ? null : id);
-  };
-
   return (
-    <div className="min-h-screen bg-[#fcfaf5] font-sans text-[#3e2f1c] p-4 md:p-12 dir-rtl" dir="rtl">
-      
-      {/* Header - Clean & Professional */}
+    <div className="min-h-screen bg-[#f8f9fa] text-[#212529] p-4 md:p-12" dir="rtl">
       <header className="max-w-4xl mx-auto mb-16 text-center">
-        <h1 className="text-4xl font-extrabold text-[#4a3728] mb-4 tracking-tight">מרכז ההדרכה הקהילתי</h1>
-        <p className="text-[#8b7355] text-lg max-w-2xl mx-auto leading-relaxed">
-          מדריכים אינטראקטיביים לשימוש נכון ומתקדם במערכת הפורומים. 
-          <br/>עקבו אחרי העכבר כדי ללמוד את הפעולות הבסיסיות.
-        </p>
+        <h1 className="text-4xl font-black text-[#1a1a1a] mb-3">מדריכי קהילת רכוסניק</h1>
+        <p className="text-[#6c757d] text-lg font-medium">למדו איך להשתמש בפורום בצורה מקצועית ויעילה</p>
       </header>
 
-      {/* Main Container */}
-      <div className="max-w-4xl mx-auto space-y-4">
-        
-        {/* --- Simulator 1: New Topic --- */}
-        <div className="bg-white rounded-xl shadow-sm border border-[#e6ccb2] overflow-hidden">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Guide 1: New Topic */}
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <button 
-            onClick={() => toggle('sim-create')}
-            className={`w-full flex items-center justify-between p-6 text-right transition-colors ${openItem === 'sim-create' ? 'bg-[#fffdf5]' : 'hover:bg-[#fff9e6]'}`}
+            onClick={() => setOpenItem(openItem === 'sim-create' ? null : 'sim-create')}
+            className={`w-full flex items-center justify-between p-6 text-right transition-all ${openItem === 'sim-create' ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
           >
-            <div className="flex items-center gap-4">
-                <span className="w-2 h-2 rounded-full bg-[#27ae60]"></span>
-                <span className="font-bold text-xl text-[#4a3728]">איך פותחים נושא חדש ומעוצב?</span>
-            </div>
-            <svg className={`w-6 h-6 text-[#d4a373] transition-transform duration-500 ${openItem === 'sim-create' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            <span className="font-bold text-xl">פתיחת נושא חדש ושימוש בכלי עריכה</span>
+            <svg className={`w-6 h-6 transition-transform ${openItem === 'sim-create' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
-          
-          <div className={`transition-all duration-700 ease-in-out overflow-hidden ${openItem === 'sim-create' ? 'max-h-[900px] opacity-100' : 'max-h-0 opacity-0'}`}>
-            <div className="p-6 bg-[#fffdf5] border-t border-[#f0e6d2]">
-               {openItem === 'sim-create' && <ForumSimulator mode="create" />}
-            </div>
-          </div>
-        </div>
+          {openItem === 'sim-create' && <div className="p-4 bg-white"><ForumSimulator mode="create" /></div>}
+        </section>
 
-        {/* --- Simulator 2: Reply --- */}
-        <div className="bg-white rounded-xl shadow-sm border border-[#e6ccb2] overflow-hidden">
+        {/* Guide 2: Reply */}
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <button 
-            onClick={() => toggle('sim-reply')}
-            className={`w-full flex items-center justify-between p-6 text-right transition-colors ${openItem === 'sim-reply' ? 'bg-[#fffdf5]' : 'hover:bg-[#fff9e6]'}`}
+            onClick={() => setOpenItem(openItem === 'sim-reply' ? null : 'sim-reply')}
+            className={`w-full flex items-center justify-between p-6 text-right transition-all ${openItem === 'sim-reply' ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
           >
-             <div className="flex items-center gap-4">
-                <span className="w-2 h-2 rounded-full bg-[#2980b9]"></span>
-                <span className="font-bold text-xl text-[#4a3728]">איך מגיבים ומוסיפים תמונות?</span>
-            </div>
-            <svg className={`w-6 h-6 text-[#d4a373] transition-transform duration-500 ${openItem === 'sim-reply' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            <span className="font-bold text-xl">איך להגיב להודעה ולהוסיף תמונה</span>
+            <svg className={`w-6 h-6 transition-transform ${openItem === 'sim-reply' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
-          
-          <div className={`transition-all duration-700 ease-in-out overflow-hidden ${openItem === 'sim-reply' ? 'max-h-[900px] opacity-100' : 'max-h-0 opacity-0'}`}>
-            <div className="p-6 bg-[#fffdf5] border-t border-[#f0e6d2]">
-               {openItem === 'sim-reply' && <ForumSimulator mode="reply" />}
-            </div>
-          </div>
-        </div>
+          {openItem === 'sim-reply' && <div className="p-4 bg-white"><ForumSimulator mode="reply" /></div>}
+        </section>
 
-        {/* --- Simulator 3: Follow Topic --- */}
-        <div className="bg-white rounded-xl shadow-sm border border-[#e6ccb2] overflow-hidden">
+        {/* Guide 3: Follow */}
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <button 
-            onClick={() => toggle('sim-follow')}
-            className={`w-full flex items-center justify-between p-6 text-right transition-colors ${openItem === 'sim-follow' ? 'bg-[#fffdf5]' : 'hover:bg-[#fff9e6]'}`}
+            onClick={() => setOpenItem(openItem === 'sim-follow' ? null : 'sim-follow')}
+            className={`w-full flex items-center justify-between p-6 text-right transition-all ${openItem === 'sim-follow' ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
           >
-             <div className="flex items-center gap-4">
-                <span className="w-2 h-2 rounded-full bg-[#f39c12]"></span>
-                <span className="font-bold text-xl text-[#4a3728]">איך עוקבים אחרי נושא לקבלת התראות?</span>
-            </div>
-            <svg className={`w-6 h-6 text-[#d4a373] transition-transform duration-500 ${openItem === 'sim-follow' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            <span className="font-bold text-xl">הגדרת מעקב אחרי שרשור (קבלת התראות)</span>
+            <svg className={`w-6 h-6 transition-transform ${openItem === 'sim-follow' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
-          
-          <div className={`transition-all duration-700 ease-in-out overflow-hidden ${openItem === 'sim-follow' ? 'max-h-[900px] opacity-100' : 'max-h-0 opacity-0'}`}>
-            <div className="p-6 bg-[#fffdf5] border-t border-[#f0e6d2]">
-               {openItem === 'sim-follow' && <ForumSimulator mode="follow" />}
-            </div>
-          </div>
-        </div>
-
+          {openItem === 'sim-follow' && <div className="p-4 bg-white"><ForumSimulator mode="follow" /></div>}
+        </section>
       </div>
-      
-      <footer className="text-center mt-20 text-[#b0a99f] text-sm">
-        <p>מבוסס על מערכת NodeBB &copy; 2024</p>
-      </footer>
     </div>
   );
 };

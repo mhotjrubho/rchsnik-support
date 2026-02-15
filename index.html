@@ -1,99 +1,35 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>מרכז ההדרכה - רכוסניק</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --nbb-gold: #d4a373;
-            --nbb-brown: #3e2f1c;
-            --nbb-bg: #f8f9fa;
-        }
-
-        body {
-            font-family: 'Assistant', sans-serif;
-            background-color: var(--nbb-bg);
-            color: var(--nbb-brown);
-        }
-
-        /* עיצוב כרטיסיות בדומה לקטגוריות בפורום */
-        .category-item-custom {
-            background: white;
-            border-bottom: 1px solid #dee2e6;
-            padding: 1.5rem;
-            transition: background 0.2s ease;
-        }
-
-        .category-item-custom:hover {
-            background-color: #fffaf0;
-        }
-
-        .icon-box {
-            background-color: var(--nbb-gold);
-            color: white;
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            font-size: 22px;
-        }
-
-        .nbb-button {
-            background-color: var(--nbb-gold);
-            border: none;
-            color: white;
-            font-weight: 700;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .nbb-button:hover {
-            background-color: #b67c48;
-            color: white;
-        }
-
-        #content { margin-top: 2rem; }
+      body {
+        font-family: 'Heebo', sans-serif;
+        background-color: #fcfcfc;
+        color: #333;
+        margin: 0;
+      }
+      .cursor-transition {
+        transition: top 1.8s cubic-bezier(0.4, 0, 0.2, 1), left 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      @keyframes blink { 50% { opacity: 0; } }
+      .caret-blink { animation: blink 1s step-end infinite; }
     </style>
-
     <script type="importmap">
     {
       "imports": {
-        "react-dom": "https://esm.sh/react-dom@18.2.0",
-        "react": "https://esm.sh/react@18.2.0"
+        "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+        "react/": "https://esm.sh/react@^19.2.4/",
+        "react": "https://esm.sh/react@^19.2.4"
       }
     }
     </script>
-</head>
-<body class="skin-noskin page-categories theme-harmony">
-
-    <div id="content" class="container">
-        
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="p-4 text-center rounded-3" style="background: linear-gradient(120deg,#fff5d4,#ffeab7); border: 3px solid var(--nbb-gold);">
-                    <h1 class="fw-bold">מרכז ההדרכה <span style="color: var(--nbb-gold);">רכוסניק</span></h1>
-                    <p class="mb-0">כל מה שצריך לדעת על שימוש בפורום והשתלבות בקהילה</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="row flex-fill py-2">
-            <div class="col-lg-12">
-                <div id="root"></div>
-            </div>
-        </div>
-    </div>
-
-    <script type="module" src="script.js"></script>
-</body>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>
