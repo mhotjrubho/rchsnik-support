@@ -1,0 +1,5 @@
+{
+  "name": "Forum Simulator Widget",
+  "description": "An interactive, guided simulation of a forum posting interface with automated cursor and typing effects.",
+  "requestFramePermissions": []
+}
