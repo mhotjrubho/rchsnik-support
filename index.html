@@ -1,70 +1,359 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>מרכז ההדרכה - רכוסניק</title>
+    
+    <!-- CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-      body {
-        font-family: 'Assistant', sans-serif;
-        background-color: #fcfcfc;
-        color: #3e2f1c;
-        margin: 0;
-      }
-      .cursor-transition {
-        transition: top 2.2s cubic-bezier(0.4, 0, 0.2, 1), left 2.2s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      @keyframes blink { 50% { opacity: 0; } }
-      .caret-blink { animation: blink 1s step-end infinite; }
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
-      /* Integrated Modern Banner Styles */
-      .modern-banner {
-        direction: rtl;
-        text-align: center;
-        position: relative;
-        max-width: 900px;
-        margin: 30px auto;
-        padding: 38px 26px;
-        border-radius: 16px;
-        border: 4px solid #d4a373;
-        background: linear-gradient(120deg,#fff5d4,#ffeab7,#fff5d4);
-        background-size: 300% 300%;
-        animation: bgGradient 20s ease infinite;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        overflow: hidden;
-      }
-      @keyframes bgGradient {
-        0% { background-position:0% 50%; }
-        50% { background-position:100% 50%; }
-        100% { background-position:0% 50%; }
-      }
-      .contact-banner {
-        direction: rtl;
-        background: linear-gradient(120deg, #f9e7c3, #ffe8a1, #f5f0e1);
-        background-size: 300% 300%;
-        border-radius: 14px;
-        padding: 30px 20px;
-        margin: 40px auto;
-        text-align: center;
-        color: #3e2f1c;
-        width: 90%;
-        max-width: 800px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-      }
+    <style>
+        body {
+            font-family: 'Assistant', sans-serif;
+            background-color: #fcfcfc;
+            color: #3e2f1c;
+            margin: 0;
+        }
+        .cursor-transition {
+            transition: top 2.2s cubic-bezier(0.4, 0, 0.2, 1), left 2.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+        .caret-blink { animation: blink 1s step-end infinite; }
+
+        .modern-banner {
+            direction: rtl;
+            text-align: center;
+            position: relative;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 38px 26px;
+            border-radius: 16px;
+            border: 4px solid #d4a373;
+            background: linear-gradient(120deg,#fff5d4,#ffeab7,#fff5d4);
+            background-size: 300% 300%;
+            animation: bgGradient 20s ease infinite;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        @keyframes bgGradient {
+            0% { background-position:0% 50%; }
+            50% { background-position:100% 50%; }
+            100% { background-position:0% 50%; }
+        }
+        .contact-banner {
+            direction: rtl;
+            background: linear-gradient(120deg, #f9e7c3, #ffe8a1, #f5f0e1);
+            background-size: 300% 300%;
+            border-radius: 14px;
+            padding: 30px 20px;
+            margin: 40px auto;
+            text-align: center;
+            color: #3e2f1c;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .dir-rtl { direction: rtl; }
     </style>
-    <script type="importmap">
-    {
-      "imports": {
-        "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-        "react/": "https://esm.sh/react@^19.2.4/",
-        "react": "https://esm.sh/react@^19.2.4"
-      }
-    }
-    </script>
-  </head>
-  <body>
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4"
+  }
+}
+</script>
+</head>
+<body>
     <div id="root"></div>
-  </body>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // --- Markdown Renderer Component ---
+        const MarkdownRenderer = ({ text }) => {
+            const parseMarkdown = (input) => {
+                let html = input.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded border border-stone-300 my-2" />');
+                html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="#" class="text-blue-600 underline">$1</a>');
+                html = html.replace(/\*\*(.*?)\*\*/g, '<b class="text-[#3e2f1c] font-extrabold bg-[#fff5d4] px-1">$1</b>');
+                html = html.replace(/\n/g, '<br>');
+                return { __html: html };
+            };
+            return <div className="text-[#3e2f1c] text-sm leading-relaxed" dangerouslySetInnerHTML={parseMarkdown(text)} />;
+        };
+
+        // --- Cursor Component ---
+        const Cursor = ({ position, isClicking }) => (
+            <svg
+                className="absolute w-6 h-6 z-50 pointer-events-none cursor-transition drop-shadow-md"
+                style={{ top: position.y, left: position.x, transform: `scale(${isClicking ? 0.7 : 1})` }}
+                viewBox="0 0 24 24" fill="white" stroke="black" strokeWidth="1.5"
+            >
+                <path d="M5.65,2.4C5.23,2.4,4.9,2.73,4.9,3.15v15.11c0,0.57,0.61,0.92,1.06,0.57l4.01-3.08l2.67,6.33c0.16,0.38,0.58,0.56,0.95,0.4l2.12-0.9c0.37-0.16,0.55-0.58,0.39-0.95l-2.67-6.33l4.6,0.2c0.55,0.02,0.85-0.63,0.48-1.04L6.15,2.54C6,2.45,5.83,2.4,5.65,2.4z" />
+            </svg>
+        );
+
+        // --- Forum Simulator Component ---
+        const ForumSimulator = ({ mode }) => {
+            const containerRef = useRef(null);
+            const btnNewTopicRef = useRef(null);
+            const btnWatchRef = useRef(null);
+            const watchMenuOptionRef = useRef(null);
+            const btnReplyRef = useRef(null);
+            const inputTitleRef = useRef(null);
+            const editorRef = useRef(null);
+            const btnBoldRef = useRef(null);
+            const btnSubmitRef = useRef(null);
+
+            const [simState, setSimState] = useState({
+                step: 1, instruction: "טוען...", isComposerOpen: false,
+                title: "", body: "", isSubmitted: false,
+                cursorPos: { x: 50, y: 50 }, isClicking: false, activeTool: null
+            });
+
+            const [watchStatus, setWatchStatus] = useState('not-watching');
+            const [isWatchMenuVisible, setIsWatchMenuVisible] = useState(false);
+
+            const wait = (ms) => new Promise(r => setTimeout(r, ms));
+            const getCenter = (el) => {
+                if (!containerRef.current || !el) return { x: 0, y: 0 };
+                const c = containerRef.current.getBoundingClientRect();
+                const r = el.getBoundingClientRect();
+                return { x: (r.left - c.left) + (r.width / 2), y: (r.top - c.top) + (r.height / 2) };
+            };
+
+            const typeText = async (text, startBody = "") => {
+                let current = startBody;
+                for (const char of text) {
+                    current += char;
+                    setSimState(prev => ({ ...prev, body: current }));
+                    await wait(120);
+                }
+                return current;
+            };
+
+            const runScenario = useCallback(async () => {
+                while (true) {
+                    if (mode === 'create') {
+                        setSimState(prev => ({ ...prev, step: 1, instruction: "כדי לפתוח דיון חדש, לחצו על 'נושא חדש' הירוק", isComposerOpen: false, isSubmitted: false, title: "", body: "" }));
+                        await wait(2000);
+                        setSimState(prev => ({ ...prev, cursorPos: getCenter(btnNewTopicRef.current) }));
+                        await wait(2800);
+                        setSimState(prev => ({ ...prev, isClicking: true }));
+                        await wait(400);
+                        setSimState(prev => ({ ...prev, isClicking: false, isComposerOpen: true }));
+                        await wait(1500);
+
+                        setSimState(prev => ({ ...prev, step: 2, instruction: "כעת הזינו כותרת שמתארת את תוכן הנושא", cursorPos: getCenter(inputTitleRef.current) }));
+                        await wait(2800);
+                        const tText = "המלצה על קבלן שיפוצים מצוין ברכסים";
+                        let t = "";
+                        for (const char of tText) { t += char; setSimState(prev => ({ ...prev, title: t })); await wait(120); }
+                        await wait(2000);
+
+                        setSimState(prev => ({ ...prev, step: 3, instruction: "בגוף ההודעה נכתוב את הפרטים ונדגיש מילים חשובות", cursorPos: getCenter(editorRef.current) }));
+                        await wait(2800);
+                        let b = await typeText("שלום, רציתי להמליץ על קבלן. ");
+                        setSimState(prev => ({ ...prev, cursorPos: getCenter(btnBoldRef.current), instruction: "נלחץ על B כדי להדגיש" }));
+                        await wait(2800);
+                        setSimState(prev => ({ ...prev, isClicking: true, activeTool: 'bold' }));
+                        await wait(250);
+                        setSimState(prev => ({ ...prev, isClicking: false, cursorPos: getCenter(editorRef.current) }));
+                        await wait(2800);
+                        b = await typeText("**הוא אמין וזול!**", b);
+                        setSimState(prev => ({ ...prev, activeTool: null }));
+                        await wait(3000);
+
+                        setSimState(prev => ({ ...prev, step: 4, instruction: "לסיום נלחץ על כפתור 'פרסום נושא'", cursorPos: getCenter(btnSubmitRef.current) }));
+                        await wait(2800);
+                        setSimState(prev => ({ ...prev, isClicking: true }));
+                        await wait(400);
+                        setSimState(prev => ({ ...prev, isClicking: false, isSubmitted: true, isComposerOpen: false }));
+                        await wait(5000);
+                    } else if (mode === 'reply') {
+                        setSimState(prev => ({ ...prev, step: 1, instruction: "כדי להגיב לנושא, לחצו על כפתור 'הגב' הכחול", isComposerOpen: false, isSubmitted: false, body: "" }));
+                        await wait(2000);
+                        setSimState(prev => ({ ...prev, cursorPos: getCenter(btnReplyRef.current) }));
+                        await wait(2800);
+                        setSimState(prev => ({ ...prev, isClicking: true }));
+                        await wait(400);
+                        setSimState(prev => ({ ...prev, isClicking: false, isComposerOpen: true }));
+                        await wait(1500);
+                        setSimState(prev => ({ ...prev, step: 2, instruction: "כתבו את התגובה שלכם והוסיפו תמונה", cursorPos: getCenter(editorRef.current) }));
+                        await wait(2800);
+                        let b = await typeText("מצטרף להמלצה! עבד גם אצלי.\n");
+                        b += "\n\n![שיפוץ](https://picsum.photos/400/200)";
+                        setSimState(prev => ({ ...prev, body: b }));
+                        await wait(4000);
+                        setSimState(prev => ({ ...prev, step: 3, instruction: "נלחץ על שליחה", cursorPos: getCenter(btnSubmitRef.current) }));
+                        await wait(2800);
+                        setSimState(prev => ({ ...prev, isClicking: true }));
+                        await wait(400);
+                        setSimState(prev => ({ ...prev, isClicking: false, isSubmitted: true, isComposerOpen: false }));
+                        await wait(5000);
+                    } else if (mode === 'follow') {
+                        setWatchStatus('not-watching'); setIsWatchMenuVisible(false);
+                        setSimState(prev => ({ ...prev, step: 1, instruction: "לקבלת התראות, חפשו את כפתור ה'מעקב' (הפעמון)", isComposerOpen: false, isSubmitted: false }));
+                        await wait(2500);
+                        setSimState(prev => ({ ...prev, cursorPos: getCenter(btnWatchRef.current) }));
+                        await wait(2800);
+                        setSimState(prev => ({ ...prev, isClicking: true }));
+                        await wait(400);
+                        setSimState(prev => ({ ...prev, isClicking: false }));
+                        setIsWatchMenuVisible(true);
+                        await wait(1500);
+                        setSimState(prev => ({ ...prev, step: 2, instruction: "בחרו ב-'עוקב'", cursorPos: getCenter(watchMenuOptionRef.current) }));
+                        await wait(2800);
+                        setSimState(prev => ({ ...prev, isClicking: true }));
+                        await wait(400);
+                        setSimState(prev => ({ ...prev, isClicking: false }));
+                        setWatchStatus('watching'); setIsWatchMenuVisible(false);
+                        setSimState(prev => ({ ...prev, instruction: "בוצע! כעת אתם עוקבים אחרי השרשור" }));
+                        await wait(5000);
+                    }
+                }
+            }, [mode]);
+
+            useEffect(() => { runScenario(); }, [runScenario]);
+
+            return (
+                <div ref={containerRef} className="relative w-full mx-auto bg-white border-2 border-[#d4a373] rounded-2xl shadow-xl overflow-hidden select-none" style={{ height: '650px' }}>
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none w-[90%] max-w-lg">
+                        <div className="bg-[#3e2f1c] text-white p-5 rounded-2xl shadow-2xl flex items-center gap-5 border-2 border-[#d4a373]">
+                            <div className="bg-[#d4a373] w-12 h-12 rounded-full flex items-center justify-center font-black text-2xl shrink-0">{simState.step}</div>
+                            <div className="text-lg font-extrabold leading-tight">{simState.instruction}</div>
+                        </div>
+                    </div>
+                    <div className="relative bg-[#f8f9fa] h-full flex flex-col overflow-hidden">
+                        <header className="bg-white h-16 border-b border-gray-200 flex items-center px-6 justify-between shrink-0 shadow-sm z-10">
+                            <div className="flex gap-8 items-center">
+                                <span className="text-[#3e2f1c] font-black text-2xl">רכוסניק</span>
+                                <div className="hidden md:flex gap-6 text-sm font-bold text-gray-400">
+                                    <span className="border-b-2 border-[#d4a373] text-[#3e2f1c] pb-1">נושאים</span>
+                                    <span>קטגוריות</span>
+                                </div>
+                            </div>
+                        </header>
+                        <div className={`flex-1 p-4 md:p-10 overflow-y-auto transition-all duration-1000 ${simState.isComposerOpen ? 'opacity-30 blur-[3px]' : 'opacity-100'}`}>
+                            {mode === 'create' ? (
+                                <div className="max-w-4xl mx-auto">
+                                    <div className="flex justify-between items-center mb-10 pb-6 border-b border-gray-200">
+                                        <h2 className="text-3xl font-black text-[#3e2f1c]">קהילה וחיי היום יום</h2>
+                                        <button ref={btnNewTopicRef} className="bg-[#27ae60] text-white px-8 py-2.5 rounded-lg font-black shadow-[0_3px_0_#219150]">נושא חדש +</button>
+                                    </div>
+                                    {simState.isSubmitted && (
+                                        <div className="bg-white p-5 rounded-xl border-r-4 border-r-[#27ae60] shadow-md flex gap-4 items-center">
+                                            <div className="w-12 h-12 rounded-full bg-[#d4a373] flex items-center justify-center text-white font-black">ר</div>
+                                            <div className="flex-1">
+                                                <div className="font-extrabold text-xl text-[#3e2f1c]">{simState.title}</div>
+                                                <div className="text-xs text-[#27ae60] font-bold">זה עתה • נושא חדש</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="max-w-3xl mx-auto">
+                                    <h2 className="text-4xl font-black text-[#3e2f1c] mb-10 leading-tight">משטרה בלב אליהו - בדיקות חגורות</h2>
+                                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8 p-8">
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <div className="w-10 h-10 bg-[#e91e63] text-white rounded-full flex items-center justify-center font-black">כ</div>
+                                            <span className="font-extrabold text-[#3e2f1c]">כאן_לעזור</span>
+                                        </div>
+                                        <div className="text-xl text-[#3e2f1c] mb-6">בודקים רכב רכב על חגורות בלב אליהו. שימו לב!</div>
+                                        <div className="flex justify-end gap-3">
+                                            {mode === 'follow' && (
+                                                <div className="relative">
+                                                    <button ref={btnWatchRef} className={`flex items-center gap-2 px-6 py-2 rounded-lg font-black border ${watchStatus === 'watching' ? 'bg-[#27ae60] text-white border-[#27ae60]' : 'bg-white text-[#5c4b36] border-gray-300'}`}>
+                                                        <span>🔔</span> {watchStatus === 'watching' ? 'עוקב' : 'מעקב'}
+                                                    </button>
+                                                    {isWatchMenuVisible && (
+                                                        <div className="absolute top-full right-0 mt-3 w-64 bg-white border border-gray-300 rounded-xl shadow-2xl z-50 overflow-hidden">
+                                                            <div ref={watchMenuOptionRef} className="p-5 hover:bg-gray-50 flex items-center gap-4 cursor-pointer">
+                                                                <div className="w-3 h-3 rounded-full bg-[#27ae60]"></div>
+                                                                <div className="text-base font-black text-[#3e2f1c]">עוקב</div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            <button ref={btnReplyRef} className="bg-[#2980b9] text-white px-8 py-2 rounded-lg font-black shadow-[0_3px_0_#20638f]">הגב ↩</button>
+                                        </div>
+                                    </div>
+                                    {simState.isSubmitted && (
+                                        <div className="bg-white rounded-2xl shadow-xl border-2 border-[#2980b9] p-8">
+                                            <div className="flex items-center gap-4 mb-4">
+                                                <div className="w-10 h-10 bg-[#d4a373] text-white flex items-center justify-center font-black rounded-full">א</div>
+                                                <span className="font-black">אני_המשתמש</span>
+                                            </div>
+                                            <MarkdownRenderer text={simState.body} />
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-full md:w-[96%] max-w-4xl bg-white rounded-t-3xl shadow-[0_-15px_60px_rgba(0,0,0,0.2)] border-t-2 border-[#d4a373] flex flex-col transition-all duration-1000 z-40`} style={{ height: '460px', transform: simState.isComposerOpen ? 'translate(-50%, 0)' : 'translate(-50%, 120%)' }}>
+                            <div className="px-10 py-6 border-b border-gray-100 flex justify-between items-center">
+                                <div className="font-black text-2xl">{mode === 'create' ? 'כתיבת נושא חדש' : 'הוספת תגובה'}</div>
+                            </div>
+                            <div className="flex items-center gap-3 p-4 bg-gray-50">
+                                <div ref={btnBoldRef} className={`w-11 h-11 flex items-center justify-center rounded-xl border-2 font-black ${simState.activeTool === 'bold' ? 'bg-[#d4a373] text-white' : 'bg-white text-gray-400'}`}>B</div>
+                                <div className="w-11 h-11 flex items-center justify-center rounded-xl bg-white text-gray-400 border-2 italic font-serif">I</div>
+                            </div>
+                            {mode === 'create' && <input ref={inputTitleRef} className="w-full p-6 text-2xl font-black border-b border-gray-50 focus:outline-none" placeholder="הכותרת שלך..." value={simState.title} readOnly />}
+                            <div ref={editorRef} className="flex-1 p-8 text-xl font-bold bg-white overflow-y-auto">
+                                <div className="whitespace-pre-wrap relative">{simState.body}<span className="inline-block w-[4px] h-7 bg-[#d4a373] ml-1 align-middle caret-blink"></span></div>
+                            </div>
+                            <div className="p-6 border-t border-gray-100 flex justify-end gap-6">
+                                <button ref={btnSubmitRef} className="bg-[#27ae60] text-white px-14 py-3 rounded-2xl font-black text-xl shadow-lg">{mode === 'create' ? 'פרסם נושא' : 'שלח תגובה'}</button>
+                            </div>
+                        </div>
+                        <Cursor position={simState.cursorPos} isClicking={simState.isClicking} />
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main App Component ---
+        const App = () => {
+            const [openItem, setOpenItem] = useState('sim-create');
+            return (
+                <div className="min-h-screen bg-[#f8f9fa] pb-12 dir-rtl">
+                    <div className="modern-banner">
+                        <h1 className="font-black text-4xl mb-3 text-[#3e2f1c]">מרכז ההדרכה של <span className="text-[#d4a373]">רכוסניק</span></h1>
+                        <p className="text-xl text-[#5c4b36] opacity-90 max-w-2xl mx-auto font-semibold">
+                            מקום של <strong>שיתוף</strong>, חסד, <strong>עזרה</strong> וידע – תושבי רכסים, ממלכת התורה בצפון.
+                        </p>
+                    </div>
+                    <div className="max-w-4xl mx-auto space-y-4 px-4">
+                        {[
+                            { id: 'sim-create', title: 'איך לפתוח נושא חדש ולעצב אותו?', mode: 'create' },
+                            { id: 'sim-reply', title: 'איך להגיב ולצרף תמונות לדיון?', mode: 'reply' },
+                            { id: 'sim-follow', title: 'איך להפעיל מעקב אחרי שרשור?', mode: 'follow' }
+                        ].map(item => (
+                            <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                                <button onClick={() => setOpenItem(openItem === item.id ? null : item.id)} className={`w-full flex items-center justify-between p-6 text-right transition-all ${openItem === item.id ? 'bg-gray-50' : 'hover:bg-gray-50'}`}>
+                                    <span className="font-extrabold text-xl text-[#3e2f1c]">{item.title}</span>
+                                    <svg className={`w-6 h-6 text-[#d4a373] transition-transform ${openItem === item.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                </button>
+                                {openItem === item.id && <div className="p-4 md:p-8 border-t border-gray-100"><ForumSimulator mode={item.mode} /></div>}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="contact-banner mx-auto">
+                        <p className="text-xl font-bold">ליצירת קשר שלחו מייל: <span className="bg-[#d4a373] text-white px-3 py-1 rounded-lg mr-2">rchsnik@gmail.com</span></p>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
 </html>
