@@ -5,66 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>מרכז ההדרכה - רכוסניק</title>
     
-    <!-- CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         body {
-            font-family: 'Assistant', sans-serif;
-            background-color: #fcfcfc;
-            color: #3e2f1c;
+            font-family: 'Heebo', sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
             margin: 0;
+            overflow-x: hidden;
         }
         .cursor-transition {
-            transition: top 2.2s cubic-bezier(0.4, 0, 0.2, 1), left 2.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: top 1.8s cubic-bezier(0.45, 0.05, 0.55, 0.95), left 1.8s cubic-bezier(0.45, 0.05, 0.55, 0.95);
         }
         @keyframes blink { 50% { opacity: 0; } }
         .caret-blink { animation: blink 1s step-end infinite; }
-
-        .modern-banner {
-            direction: rtl;
-            text-align: center;
-            position: relative;
-            max-width: 900px;
-            margin: 30px auto;
-            padding: 38px 26px;
-            border-radius: 16px;
-            border: 4px solid #d4a373;
-            background: linear-gradient(120deg,#fff5d4,#ffeab7,#fff5d4);
-            background-size: 300% 300%;
-            animation: bgGradient 20s ease infinite;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        
+        /* NodeBB Specific tweaks inside simulation */
+        .nodebb-blue { color: #337ab7; }
+        .nodebb-bg-blue { background-color: #337ab7; }
+        .nodebb-btn-primary { 
+            background-color: #337ab7; 
+            color: white;
+            border-radius: 4px;
+            font-weight: 700;
         }
-        @keyframes bgGradient {
-            0% { background-position:0% 50%; }
-            50% { background-position:100% 50%; }
-            100% { background-position:0% 50%; }
-        }
-        .contact-banner {
-            direction: rtl;
-            background: linear-gradient(120deg, #f9e7c3, #ffe8a1, #f5f0e1);
-            background-size: 300% 300%;
-            border-radius: 14px;
-            padding: 30px 20px;
-            margin: 40px auto;
-            text-align: center;
-            color: #3e2f1c;
-            width: 90%;
-            max-width: 800px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-        .dir-rtl { direction: rtl; }
+        .nodebb-btn-primary:hover { background-color: #286090; }
+        
+        .prose img { max-width: 100%; border-radius: 4px; border: 1px solid #ddd; margin: 10px 0; }
+        .prose b, .prose strong { font-weight: 800; color: #000; }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4"
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
   }
 }
 </script>
@@ -75,278 +56,323 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
 
-        // --- Markdown Renderer Component ---
+        // Simplified Markdown Parser for Simulation
         const MarkdownRenderer = ({ text }) => {
-            const parseMarkdown = (input) => {
+            const parse = (input) => {
+                if (!input) return { __html: "" };
                 let html = input.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded border border-stone-300 my-2" />');
-                html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="#" class="text-blue-600 underline">$1</a>');
-                html = html.replace(/\*\*(.*?)\*\*/g, '<b class="text-[#3e2f1c] font-extrabold bg-[#fff5d4] px-1">$1</b>');
+                html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 html = html.replace(/\n/g, '<br>');
                 return { __html: html };
             };
-            return <div className="text-[#3e2f1c] text-sm leading-relaxed" dangerouslySetInnerHTML={parseMarkdown(text)} />;
+            return <div className="text-gray-800 text-base leading-relaxed prose prose-sm max-w-none text-right" dangerouslySetInnerHTML={parse(text)} />;
         };
 
-        // --- Cursor Component ---
         const Cursor = ({ position, isClicking }) => (
             <svg
-                className="absolute w-6 h-6 z-50 pointer-events-none cursor-transition drop-shadow-md"
+                className="absolute w-6 h-6 z-[200] pointer-events-none cursor-transition drop-shadow-md"
                 style={{ top: position.y, left: position.x, transform: `scale(${isClicking ? 0.7 : 1})` }}
-                viewBox="0 0 24 24" fill="white" stroke="black" strokeWidth="1.5"
+                viewBox="0 0 24 24" fill="white" stroke="black" strokeWidth="1.2"
             >
                 <path d="M5.65,2.4C5.23,2.4,4.9,2.73,4.9,3.15v15.11c0,0.57,0.61,0.92,1.06,0.57l4.01-3.08l2.67,6.33c0.16,0.38,0.58,0.56,0.95,0.4l2.12-0.9c0.37-0.16,0.55-0.58,0.39-0.95l-2.67-6.33l4.6,0.2c0.55,0.02,0.85-0.63,0.48-1.04L6.15,2.54C6,2.45,5.83,2.4,5.65,2.4z" />
             </svg>
         );
 
-        // --- Forum Simulator Component ---
         const ForumSimulator = ({ mode }) => {
             const containerRef = useRef(null);
+            
+            // Interaction Refs
             const btnNewTopicRef = useRef(null);
-            const btnWatchRef = useRef(null);
-            const watchMenuOptionRef = useRef(null);
             const btnReplyRef = useRef(null);
+            const btnWatchRef = useRef(null);
+            const watchOptionRef = useRef(null);
             const inputTitleRef = useRef(null);
             const editorRef = useRef(null);
             const btnBoldRef = useRef(null);
             const btnSubmitRef = useRef(null);
 
-            const [simState, setSimState] = useState({
-                step: 1, instruction: "טוען...", isComposerOpen: false,
-                title: "", body: "", isSubmitted: false,
+            // User Info Refs
+            const userAvatarRef = useRef(null);
+            const userNameRef = useRef(null);
+            const userBadgeRef = useRef(null);
+            const userRepRef = useRef(null);
+            const userPostsRef = useRef(null);
+
+            const [sim, setSim] = useState({
+                step: 1, instruction: "טוען הדמיה...", isComposerOpen: false, title: "", body: "", isSubmitted: false,
                 cursorPos: { x: 50, y: 50 }, isClicking: false, activeTool: null
             });
-
-            const [watchStatus, setWatchStatus] = useState('not-watching');
-            const [isWatchMenuVisible, setIsWatchMenuVisible] = useState(false);
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [watchStatus, setWatchStatus] = useState('מעקב');
 
             const wait = (ms) => new Promise(r => setTimeout(r, ms));
-            const getCenter = (el) => {
+            const getPos = (el) => {
                 if (!containerRef.current || !el) return { x: 0, y: 0 };
                 const c = containerRef.current.getBoundingClientRect();
                 const r = el.getBoundingClientRect();
                 return { x: (r.left - c.left) + (r.width / 2), y: (r.top - c.top) + (r.height / 2) };
             };
 
-            const typeText = async (text, startBody = "") => {
-                let current = startBody;
+            const type = async (text, field = "body", startText = "") => {
+                let current = startText;
                 for (const char of text) {
                     current += char;
-                    setSimState(prev => ({ ...prev, body: current }));
-                    await wait(120);
+                    setSim(prev => ({ ...prev, [field]: current }));
+                    await wait(60);
                 }
                 return current;
             };
 
-            const runScenario = useCallback(async () => {
+            const run = useCallback(async () => {
                 while (true) {
-                    if (mode === 'create') {
-                        setSimState(prev => ({ ...prev, step: 1, instruction: "כדי לפתוח דיון חדש, לחצו על 'נושא חדש' הירוק", isComposerOpen: false, isSubmitted: false, title: "", body: "" }));
+                    if (mode === 'create' || mode === 'reply') {
+                        const isCreate = mode === 'create';
+                        setSim(p => ({ ...p, step: 1, instruction: isCreate ? "לפתיחת נושא חדש, לחצו על הכפתור הכחול 'נושא חדש'" : "להוספת תגובה, לחצו על 'הגב' בתחתית הפוסט", isComposerOpen: false, isSubmitted: false, title: "", body: "" }));
                         await wait(2000);
-                        setSimState(prev => ({ ...prev, cursorPos: getCenter(btnNewTopicRef.current) }));
-                        await wait(2800);
-                        setSimState(prev => ({ ...prev, isClicking: true }));
-                        await wait(400);
-                        setSimState(prev => ({ ...prev, isClicking: false, isComposerOpen: true }));
-                        await wait(1500);
+                        setSim(p => ({ ...p, cursorPos: getPos(isCreate ? btnNewTopicRef.current : btnReplyRef.current) }));
+                        await wait(2200);
+                        setSim(p => ({ ...p, isClicking: true })); await wait(300);
+                        setSim(p => ({ ...p, isClicking: false, isComposerOpen: true })); await wait(1000);
 
-                        setSimState(prev => ({ ...prev, step: 2, instruction: "כעת הזינו כותרת שמתארת את תוכן הנושא", cursorPos: getCenter(inputTitleRef.current) }));
-                        await wait(2800);
-                        const tText = "המלצה על קבלן שיפוצים מצוין ברכסים";
-                        let t = "";
-                        for (const char of tText) { t += char; setSimState(prev => ({ ...prev, title: t })); await wait(120); }
-                        await wait(2000);
+                        if (isCreate) {
+                            setSim(p => ({ ...p, step: 2, instruction: "הזינו כותרת. שימו לב לחלוקת המסך: עורך מימין ותצוגה מקדימה משמאל" }));
+                            setSim(p => ({ ...p, cursorPos: getPos(inputTitleRef.current) }));
+                            await wait(2200);
+                            await type("שאלה לגבי זמני התפילה ברכסים", "title"); await wait(1000);
+                        }
 
-                        setSimState(prev => ({ ...prev, step: 3, instruction: "בגוף ההודעה נכתוב את הפרטים ונדגיש מילים חשובות", cursorPos: getCenter(editorRef.current) }));
-                        await wait(2800);
-                        let b = await typeText("שלום, רציתי להמליץ על קבלן. ");
-                        setSimState(prev => ({ ...prev, cursorPos: getCenter(btnBoldRef.current), instruction: "נלחץ על B כדי להדגיש" }));
-                        await wait(2800);
-                        setSimState(prev => ({ ...prev, isClicking: true, activeTool: 'bold' }));
-                        await wait(250);
-                        setSimState(prev => ({ ...prev, isClicking: false, cursorPos: getCenter(editorRef.current) }));
-                        await wait(2800);
-                        b = await typeText("**הוא אמין וזול!**", b);
-                        setSimState(prev => ({ ...prev, activeTool: null }));
-                        await wait(3000);
+                        setSim(p => ({ ...p, step: isCreate ? 3 : 2, instruction: "כתבו את ההודעה. התצוגה המקדימה משמאל מתעדכנת בזמן אמת" }));
+                        setSim(p => ({ ...p, cursorPos: getPos(editorRef.current) }));
+                        await wait(2200);
+                        let b = await type(isCreate ? "שלום, מישהו יודע מתי מנחה גדולה בבית הכנסת " : "בדרך כלל בשעה 13:15. כדאי לבדוק בלוח המודעות.");
+                        
+                        setSim(p => ({ ...p, instruction: "נשתמש בכלי ההדגשה (B) כדי לעצב את הטקסט", cursorPos: getPos(btnBoldRef.current) }));
+                        await wait(2200);
+                        setSim(p => ({ ...p, isClicking: true, activeTool: 'bold' })); await wait(250);
+                        setSim(p => ({ ...p, isClicking: false, cursorPos: getPos(editorRef.current) }));
+                        await wait(1200);
+                        b = await type("**המרכזי**", "body", b);
+                        setSim(p => ({ ...p, activeTool: null })); await wait(2000);
 
-                        setSimState(prev => ({ ...prev, step: 4, instruction: "לסיום נלחץ על כפתור 'פרסום נושא'", cursorPos: getCenter(btnSubmitRef.current) }));
-                        await wait(2800);
-                        setSimState(prev => ({ ...prev, isClicking: true }));
-                        await wait(400);
-                        setSimState(prev => ({ ...prev, isClicking: false, isSubmitted: true, isComposerOpen: false }));
-                        await wait(5000);
-                    } else if (mode === 'reply') {
-                        setSimState(prev => ({ ...prev, step: 1, instruction: "כדי להגיב לנושא, לחצו על כפתור 'הגב' הכחול", isComposerOpen: false, isSubmitted: false, body: "" }));
-                        await wait(2000);
-                        setSimState(prev => ({ ...prev, cursorPos: getCenter(btnReplyRef.current) }));
-                        await wait(2800);
-                        setSimState(prev => ({ ...prev, isClicking: true }));
-                        await wait(400);
-                        setSimState(prev => ({ ...prev, isClicking: false, isComposerOpen: true }));
-                        await wait(1500);
-                        setSimState(prev => ({ ...prev, step: 2, instruction: "כתבו את התגובה שלכם והוסיפו תמונה", cursorPos: getCenter(editorRef.current) }));
-                        await wait(2800);
-                        let b = await typeText("מצטרף להמלצה! עבד גם אצלי.\n");
-                        b += "\n\n![שיפוץ](https://picsum.photos/400/200)";
-                        setSimState(prev => ({ ...prev, body: b }));
-                        await wait(4000);
-                        setSimState(prev => ({ ...prev, step: 3, instruction: "נלחץ על שליחה", cursorPos: getCenter(btnSubmitRef.current) }));
-                        await wait(2800);
-                        setSimState(prev => ({ ...prev, isClicking: true }));
-                        await wait(400);
-                        setSimState(prev => ({ ...prev, isClicking: false, isSubmitted: true, isComposerOpen: false }));
+                        setSim(p => ({ ...p, step: isCreate ? 4 : 3, instruction: "כפתור השליחה נמצא תמיד בצד שמאל למעלה", cursorPos: getPos(btnSubmitRef.current) }));
+                        await wait(2200);
+                        setSim(p => ({ ...p, isClicking: true })); await wait(300);
+                        setSim(p => ({ ...p, isClicking: false, isSubmitted: true, isComposerOpen: false }));
                         await wait(5000);
                     } else if (mode === 'follow') {
-                        setWatchStatus('not-watching'); setIsWatchMenuVisible(false);
-                        setSimState(prev => ({ ...prev, step: 1, instruction: "לקבלת התראות, חפשו את כפתור ה'מעקב' (הפעמון)", isComposerOpen: false, isSubmitted: false }));
-                        await wait(2500);
-                        setSimState(prev => ({ ...prev, cursorPos: getCenter(btnWatchRef.current) }));
-                        await wait(2800);
-                        setSimState(prev => ({ ...prev, isClicking: true }));
-                        await wait(400);
-                        setSimState(prev => ({ ...prev, isClicking: false }));
-                        setIsWatchMenuVisible(true);
-                        await wait(1500);
-                        setSimState(prev => ({ ...prev, step: 2, instruction: "בחרו ב-'עוקב'", cursorPos: getCenter(watchMenuOptionRef.current) }));
-                        await wait(2800);
-                        setSimState(prev => ({ ...prev, isClicking: true }));
-                        await wait(400);
-                        setSimState(prev => ({ ...prev, isClicking: false }));
-                        setWatchStatus('watching'); setIsWatchMenuVisible(false);
-                        setSimState(prev => ({ ...prev, instruction: "בוצע! כעת אתם עוקבים אחרי השרשור" }));
+                        setIsMenuOpen(false); setWatchStatus('מעקב');
+                        setSim(p => ({ ...p, step: 1, instruction: "לחצו על כפתור המעקב (הפעמון) כדי לנהל התראות", isComposerOpen: false, isSubmitted: false }));
+                        await wait(2000);
+                        setSim(p => ({ ...p, cursorPos: getPos(btnWatchRef.current) }));
+                        await wait(2200);
+                        setSim(p => ({ ...p, isClicking: true })); await wait(300);
+                        setSim(p => ({ ...p, isClicking: false })); setIsMenuOpen(true); await wait(1500);
+                        
+                        setSim(p => ({ ...p, step: 2, instruction: "בחרו ב-'עוקב' כדי לקבל התראה על כל תגובה חדשה" }));
+                        setSim(p => ({ ...p, cursorPos: getPos(watchOptionRef.current) }));
+                        await wait(2200);
+                        setSim(p => ({ ...p, isClicking: true })); await wait(300);
+                        setSim(p => ({ ...p, isClicking: false })); setIsMenuOpen(false); setWatchStatus('עוקב');
+                        setSim(p => ({ ...p, instruction: "מעולה! כעת אתם עוקבים אחרי הנושא הזה." }));
                         await wait(5000);
+                    } else if (mode === 'user-info') {
+                        setSim(p => ({ ...p, step: 1, instruction: "בצד ימין של כל פוסט מופיע כרטיס המשתמש עם פרטיו" }));
+                        await wait(3500);
+                        
+                        setSim(p => ({ ...p, step: 2, instruction: "זוהי תמונת המשתמש. היא עוזרת לזיהוי מהיר של הכותב" }));
+                        setSim(p => ({ ...p, cursorPos: getPos(userAvatarRef.current) })); await wait(4000);
+
+                        setSim(p => ({ ...p, step: 3, instruction: "שם המשתמש. לחיצה עליו תוביל לפרופיל האישי שלו" }));
+                        setSim(p => ({ ...p, cursorPos: getPos(userNameRef.current) })); await wait(4000);
+
+                        setSim(p => ({ ...p, step: 4, instruction: "כאן מופיעה הדרגה או הקבוצה (למשל: צוות פיקוח)" }));
+                        setSim(p => ({ ...p, cursorPos: getPos(userBadgeRef.current) })); await wait(4000);
+
+                        setSim(p => ({ ...p, step: 5, instruction: "המוניטין מראה את הערכת הקהילה (כמות הלייקים שקיבל)" }));
+                        setSim(p => ({ ...p, cursorPos: getPos(userRepRef.current) })); await wait(5000);
                     }
                 }
             }, [mode]);
 
-            useEffect(() => { runScenario(); }, [runScenario]);
+            useEffect(() => { run(); }, [run]);
 
-            return (
-                <div ref={containerRef} className="relative w-full mx-auto bg-white border-2 border-[#d4a373] rounded-2xl shadow-xl overflow-hidden select-none" style={{ height: '650px' }}>
-                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none w-[90%] max-w-lg">
-                        <div className="bg-[#3e2f1c] text-white p-5 rounded-2xl shadow-2xl flex items-center gap-5 border-2 border-[#d4a373]">
-                            <div className="bg-[#d4a373] w-12 h-12 rounded-full flex items-center justify-center font-black text-2xl shrink-0">{simState.step}</div>
-                            <div className="text-lg font-extrabold leading-tight">{simState.instruction}</div>
+            const PostTemplate = ({ user, isSubmitted }) => (
+                <div className={`border-b border-gray-100 flex group ${isSubmitted ? 'bg-blue-50/20 animate-pulse' : 'bg-white'}`}>
+                    {/* User Sidebar - Matched to NodeBB Source */}
+                    <div className="w-32 p-4 bg-gray-50/50 flex flex-col items-center border-l border-gray-100 shrink-0">
+                        <div ref={user.ref?.avatar} className={`w-16 h-16 rounded-full text-white flex items-center justify-center text-2xl font-black mb-2 shadow-sm ${user.avatarBg}`}>
+                            {user.initial}
+                        </div>
+                        <a ref={user.ref?.name} href="#" className="font-bold text-xs text-[#337ab7] text-center mb-1 hover:underline">{user.name}</a>
+                        {user.badge && (
+                            <div ref={user.ref?.badge} className="bg-black text-white text-[9px] px-2 py-0.5 rounded-sm font-bold uppercase tracking-tighter mb-4">
+                                {user.badge}
+                            </div>
+                        )}
+                        <div className="flex flex-col gap-1 items-center">
+                            <span ref={user.ref?.posts} className="text-[9px] text-gray-400">פוסטים: <b className="text-gray-600">{user.posts}</b></span>
+                            <span ref={user.ref?.rep} className="text-[9px] text-gray-400">מוניטין: <b className="text-gray-600">{user.rep}</b></span>
                         </div>
                     </div>
-                    <div className="relative bg-[#f8f9fa] h-full flex flex-col overflow-hidden">
-                        <header className="bg-white h-16 border-b border-gray-200 flex items-center px-6 justify-between shrink-0 shadow-sm z-10">
+                    {/* Post Body */}
+                    <div className="flex-1 p-6 relative text-right">
+                        <div className="text-xs text-gray-400 mb-4 font-bold flex justify-between flex-row-reverse">
+                            <span>{user.postNum}</span><span>{user.time}</span>
+                        </div>
+                        <div className="text-lg text-[#333] leading-relaxed mb-10">
+                           {isSubmitted ? <MarkdownRenderer text={sim.body} /> : user.content}
+                        </div>
+                        <div className="absolute bottom-4 left-6">
+                            <button ref={btnReplyRef} className="text-[#337ab7] font-bold text-sm hover:underline flex items-center gap-1">
+                                הגב <i className="fa fa-reply"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div ref={containerRef} className="relative w-full mx-auto bg-white border-2 border-[#d4a373] rounded-xl shadow-lg overflow-hidden select-none h-[680px]">
+                    {/* Instruction Alert */}
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[150] w-[90%] max-w-lg">
+                        <div className="bg-[#3e2f1c] text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 border-2 border-[#d4a373]">
+                            <div className="bg-[#d4a373] w-10 h-10 rounded-full flex items-center justify-center font-black text-xl shrink-0">{sim.step}</div>
+                            <div className="text-base font-bold leading-tight">{sim.instruction}</div>
+                        </div>
+                    </div>
+
+                    <div className="relative bg-[#f4f7f9] h-full flex flex-col overflow-hidden">
+                        {/* Fake Navbar */}
+                        <header className="bg-white h-14 border-b border-gray-200 flex items-center px-6 justify-between shrink-0 shadow-sm z-10">
                             <div className="flex gap-8 items-center">
-                                <span className="text-[#3e2f1c] font-black text-2xl">רכוסניק</span>
-                                <div className="hidden md:flex gap-6 text-sm font-bold text-gray-400">
-                                    <span className="border-b-2 border-[#d4a373] text-[#3e2f1c] pb-1">נושאים</span>
-                                    <span>קטגוריות</span>
-                                </div>
+                                <span className="text-[#337ab7] font-black text-2xl tracking-tighter">רכוסניק</span>
                             </div>
+                            <div className="w-8 h-8 bg-[#f44336] rounded-full flex items-center justify-center text-white text-[10px] font-bold">ח</div>
                         </header>
-                        <div className={`flex-1 p-4 md:p-10 overflow-y-auto transition-all duration-1000 ${simState.isComposerOpen ? 'opacity-30 blur-[3px]' : 'opacity-100'}`}>
+
+                        <div className={`flex-1 overflow-y-auto transition-all duration-700 ${sim.isComposerOpen ? 'opacity-20 blur-sm' : ''}`}>
                             {mode === 'create' ? (
-                                <div className="max-w-4xl mx-auto">
-                                    <div className="flex justify-between items-center mb-10 pb-6 border-b border-gray-200">
-                                        <h2 className="text-3xl font-black text-[#3e2f1c]">קהילה וחיי היום יום</h2>
-                                        <button ref={btnNewTopicRef} className="bg-[#27ae60] text-white px-8 py-2.5 rounded-lg font-black shadow-[0_3px_0_#219150]">נושא חדש +</button>
+                                <div className="p-8 max-w-4xl mx-auto">
+                                    <div className="flex justify-between items-center mb-8 pb-4 border-b">
+                                        <h2 className="text-2xl font-black text-[#333]">קהילה ודיבורים</h2>
+                                        <button ref={btnNewTopicRef} className="nodebb-btn-primary px-6 py-2 text-sm shadow-sm">נושא חדש</button>
                                     </div>
-                                    {simState.isSubmitted && (
-                                        <div className="bg-white p-5 rounded-xl border-r-4 border-r-[#27ae60] shadow-md flex gap-4 items-center">
-                                            <div className="w-12 h-12 rounded-full bg-[#d4a373] flex items-center justify-center text-white font-black">ר</div>
-                                            <div className="flex-1">
-                                                <div className="font-extrabold text-xl text-[#3e2f1c]">{simState.title}</div>
-                                                <div className="text-xs text-[#27ae60] font-bold">זה עתה • נושא חדש</div>
-                                            </div>
-                                        </div>
-                                    )}
+                                    {sim.isSubmitted && <PostTemplate user={{ name: 'חצקל', initial: 'ח', posts: 122, rep: 89, time: 'זה עתה', postNum: '#1', avatarBg: 'bg-[#f44336]', ref: {} }} isSubmitted={true} />}
                                 </div>
                             ) : (
-                                <div className="max-w-3xl mx-auto">
-                                    <h2 className="text-4xl font-black text-[#3e2f1c] mb-10 leading-tight">משטרה בלב אליהו - בדיקות חגורות</h2>
-                                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8 p-8">
-                                        <div className="flex items-center gap-4 mb-4">
-                                            <div className="w-10 h-10 bg-[#e91e63] text-white rounded-full flex items-center justify-center font-black">כ</div>
-                                            <span className="font-extrabold text-[#3e2f1c]">כאן_לעזור</span>
-                                        </div>
-                                        <div className="text-xl text-[#3e2f1c] mb-6">בודקים רכב רכב על חגורות בלב אליהו. שימו לב!</div>
-                                        <div className="flex justify-end gap-3">
-                                            {mode === 'follow' && (
-                                                <div className="relative">
-                                                    <button ref={btnWatchRef} className={`flex items-center gap-2 px-6 py-2 rounded-lg font-black border ${watchStatus === 'watching' ? 'bg-[#27ae60] text-white border-[#27ae60]' : 'bg-white text-[#5c4b36] border-gray-300'}`}>
-                                                        <span>🔔</span> {watchStatus === 'watching' ? 'עוקב' : 'מעקב'}
-                                                    </button>
-                                                    {isWatchMenuVisible && (
-                                                        <div className="absolute top-full right-0 mt-3 w-64 bg-white border border-gray-300 rounded-xl shadow-2xl z-50 overflow-hidden">
-                                                            <div ref={watchMenuOptionRef} className="p-5 hover:bg-gray-50 flex items-center gap-4 cursor-pointer">
-                                                                <div className="w-3 h-3 rounded-full bg-[#27ae60]"></div>
-                                                                <div className="text-base font-black text-[#3e2f1c]">עוקב</div>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                            <button ref={btnReplyRef} className="bg-[#2980b9] text-white px-8 py-2 rounded-lg font-black shadow-[0_3px_0_#20638f]">הגב ↩</button>
-                                        </div>
-                                    </div>
-                                    {simState.isSubmitted && (
-                                        <div className="bg-white rounded-2xl shadow-xl border-2 border-[#2980b9] p-8">
-                                            <div className="flex items-center gap-4 mb-4">
-                                                <div className="w-10 h-10 bg-[#d4a373] text-white flex items-center justify-center font-black rounded-full">א</div>
-                                                <span className="font-black">אני_המשתמש</span>
+                                <div className="max-w-4xl mx-auto">
+                                    <div className="p-6 bg-white border-b flex justify-between items-center sticky top-0 z-20">
+                                        <h1 className="text-2xl font-black text-[#333]">משטרה בלב אליהו</h1>
+                                        {mode === 'follow' && (
+                                            <div className="relative">
+                                                <button ref={btnWatchRef} className={`flex items-center gap-2 px-4 py-1.5 rounded border text-sm font-bold ${watchStatus === 'עוקב' ? 'bg-[#5cb85c] text-white border-[#4cae4c]' : 'bg-white text-gray-600'}`}>
+                                                    <i className={`fa ${watchStatus === 'עוקב' ? 'fa-bell' : 'fa-bell-slash'}`}></i> {watchStatus}
+                                                </button>
+                                                {isMenuOpen && (
+                                                    <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-lg shadow-xl z-50 overflow-hidden">
+                                                        <a ref={watchOptionRef} href="#" className="block p-3 hover:bg-gray-50 text-sm font-bold border-b text-right">עוקב</a>
+                                                        <a href="#" className="block p-3 hover:bg-gray-50 text-sm text-gray-400 text-right">לא עוקב</a>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <MarkdownRenderer text={simState.body} />
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
+                                    <PostTemplate user={{ name: 'כאן-לעזור', initial: 'כ', posts: 62, rep: 89, time: 'לפני יום', postNum: '#1', badge: 'צוות פיקוח', content: 'בודקים רכב רכב על חגורות בכיכר הכניסה.', avatarBg: 'bg-[#e91e63]', ref: {avatar: userAvatarRef, name: userNameRef, badge: userBadgeRef, rep: userRepRef, posts: userPostsRef} }} />
+                                    {sim.isSubmitted && <PostTemplate user={{ name: 'חצקל', initial: 'ח', posts: 122, rep: 89, time: 'זה עתה', postNum: '#2', avatarBg: 'bg-[#f44336]', ref: {} }} isSubmitted={true} />}
                                 </div>
                             )}
                         </div>
-                        <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-full md:w-[96%] max-w-4xl bg-white rounded-t-3xl shadow-[0_-15px_60px_rgba(0,0,0,0.2)] border-t-2 border-[#d4a373] flex flex-col transition-all duration-1000 z-40`} style={{ height: '460px', transform: simState.isComposerOpen ? 'translate(-50%, 0)' : 'translate(-50%, 120%)' }}>
-                            <div className="px-10 py-6 border-b border-gray-100 flex justify-between items-center">
-                                <div className="font-black text-2xl">{mode === 'create' ? 'כתיבת נושא חדש' : 'הוספת תגובה'}</div>
+
+                        {/* NodeBB Split-View Composer */}
+                        <div className={`absolute bottom-0 left-0 w-full bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.15)] border-t border-gray-200 flex flex-col transition-all duration-700 z-40`} style={{ height: '520px', transform: sim.isComposerOpen ? 'translateY(0)' : 'translateY(100%)' }}>
+                            {/* TOP HEADER: SUBMIT ON LEFT */}
+                            <div className="px-4 py-2 border-b bg-gray-50 flex justify-between items-center shrink-0">
+                                <div className="flex items-center gap-1">
+                                    <button ref={btnSubmitRef} className="nodebb-bg-blue text-white px-6 py-1.5 rounded-md font-bold text-sm shadow hover:bg-[#286090] flex items-center gap-2">
+                                        <i className="fa fa-check"></i> שליחה
+                                    </button>
+                                    <button className="text-gray-500 font-bold text-sm px-4">ביטול</button>
+                                    <button className="text-gray-400 p-2"><i className="fa fa-angle-down"></i></button>
+                                </div>
+                                <span className="font-bold text-[#333] text-sm">{mode === 'create' ? 'פתיחת נושא חדש' : 'תגובה ל"משטרה בלב אליהו"'}</span>
+                                <div className="w-10"></div>
                             </div>
-                            <div className="flex items-center gap-3 p-4 bg-gray-50">
-                                <div ref={btnBoldRef} className={`w-11 h-11 flex items-center justify-center rounded-xl border-2 font-black ${simState.activeTool === 'bold' ? 'bg-[#d4a373] text-white' : 'bg-white text-gray-400'}`}>B</div>
-                                <div className="w-11 h-11 flex items-center justify-center rounded-xl bg-white text-gray-400 border-2 italic font-serif">I</div>
+                            
+                            {mode === 'create' && (
+                                <div className="px-4 py-2 border-b flex items-center gap-2 bg-white">
+                                    <div className="bg-[#DC9656] w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] shrink-0"><i className="fa fa-right-left"></i></div>
+                                    <input ref={inputTitleRef} className="flex-1 border border-gray-300 px-4 py-2 rounded-md font-bold text-sm focus:outline-none focus:border-[#337ab7]" placeholder="הכניסו את כותרת הנושא כאן..." value={sim.title} readOnly dir="rtl" />
+                                </div>
+                            )}
+
+                            <div className="flex items-center gap-1.5 px-4 py-2 border-b bg-gray-50 shrink-0 overflow-x-auto">
+                                <button ref={btnBoldRef} className={`w-8 h-8 flex items-center justify-center rounded transition-all text-xs font-black ${sim.activeTool === 'bold' ? 'nodebb-bg-blue text-white' : 'text-gray-500 hover:bg-gray-200'}`}>B</button>
+                                <button className="w-8 h-8 flex items-center justify-center rounded text-gray-500 italic">I</button>
+                                <div className="w-[1px] h-5 bg-gray-300 mx-1"></div>
+                                <button className="w-8 h-8 flex items-center justify-center rounded text-gray-500"><i className="fa fa-link"></i></button>
+                                <button className="w-8 h-8 flex items-center justify-center rounded text-gray-500"><i className="fa fa-picture-o"></i></button>
+                                <button className="w-8 h-8 flex items-center justify-center rounded text-gray-500">≡</button>
+                                <div className="flex-1"></div>
+                                <div className="flex items-center gap-2 text-[11px] font-bold text-[#337ab7] px-2">
+                                   <i className="fa fa-eye"></i> הצגת תצוגה מקדימה
+                                </div>
                             </div>
-                            {mode === 'create' && <input ref={inputTitleRef} className="w-full p-6 text-2xl font-black border-b border-gray-50 focus:outline-none" placeholder="הכותרת שלך..." value={simState.title} readOnly />}
-                            <div ref={editorRef} className="flex-1 p-8 text-xl font-bold bg-white overflow-y-auto">
-                                <div className="whitespace-pre-wrap relative">{simState.body}<span className="inline-block w-[4px] h-7 bg-[#d4a373] ml-1 align-middle caret-blink"></span></div>
-                            </div>
-                            <div className="p-6 border-t border-gray-100 flex justify-end gap-6">
-                                <button ref={btnSubmitRef} className="bg-[#27ae60] text-white px-14 py-3 rounded-2xl font-black text-xl shadow-lg">{mode === 'create' ? 'פרסם נושא' : 'שלח תגובה'}</button>
+
+                            {/* Split Pane Area */}
+                            <div className="flex-1 flex overflow-hidden">
+                                {/* Editor (Right side in RTL) */}
+                                <div className="w-1/2 h-full border-l border-gray-200 flex flex-col p-4 bg-white">
+                                    <div className="text-[10px] font-black text-gray-300 uppercase mb-2 tracking-widest">עורך טקסט</div>
+                                    <textarea ref={editorRef} className="flex-1 text-base font-medium focus:outline-none resize-none leading-relaxed text-[#333] placeholder-gray-300 w-full" value={sim.body} readOnly dir="rtl" />
+                                    <span className="inline-block w-[2px] h-5 nodebb-bg-blue absolute right-6 caret-blink" style={{top: '120px'}}></span>
+                                </div>
+                                {/* Live Preview (Left side in RTL) */}
+                                <div className="w-1/2 h-full bg-gray-50/70 p-4 overflow-y-auto">
+                                    <div className="text-[10px] font-black text-gray-300 uppercase mb-2 tracking-widest">תצוגה מקדימה</div>
+                                    <MarkdownRenderer text={sim.body || "ממתין לטקסט..."} />
+                                </div>
                             </div>
                         </div>
-                        <Cursor position={simState.cursorPos} isClicking={simState.isClicking} />
+                        <Cursor position={sim.cursorPos} isClicking={sim.isClicking} />
                     </div>
                 </div>
             );
         };
 
-        // --- Main App Component ---
         const App = () => {
-            const [openItem, setOpenItem] = useState('sim-create');
+            const [open, setOpen] = useState('sim-create');
+            const sections = [
+                { id: 'sim-create', title: '1. איך לפתוח נושא חדש ולעצב אותו?', mode: 'create' },
+                { id: 'sim-reply', title: '2. איך להגיב עם עורך מפוצל (Split-View)?', mode: 'reply' },
+                { id: 'sim-follow', title: '3. ניהול מעקב והתראות אחר נושאים', mode: 'follow' },
+                { id: 'user-info', title: '4. הכרת אזור המשתמש והמוניטין', mode: 'user-info' },
+            ];
+
             return (
-                <div className="min-h-screen bg-[#f8f9fa] pb-12 dir-rtl">
-                    <div className="modern-banner">
-                        <h1 className="font-black text-4xl mb-3 text-[#3e2f1c]">מרכז ההדרכה של <span className="text-[#d4a373]">רכוסניק</span></h1>
-                        <p className="text-xl text-[#5c4b36] opacity-90 max-w-2xl mx-auto font-semibold">
-                            מקום של <strong>שיתוף</strong>, חסד, <strong>עזרה</strong> וידע – תושבי רכסים, ממלכת התורה בצפון.
+                <div className="min-h-screen pb-20">
+                    <div className="bg-gradient-to-r from-[#3e2f1c] to-[#5c4b36] py-16 px-4 text-center text-white mb-10 shadow-lg border-b-4 border-[#d4a373]">
+                        <h1 className="font-black text-5xl mb-4 drop-shadow-md text-right max-w-4xl mx-auto">מרכז ההדרכה של <span className="text-[#d4a373]">רכוסניק</span></h1>
+                        <p className="text-xl opacity-90 font-medium max-w-4xl mx-auto text-right leading-relaxed">
+                            גלו איך להשתמש בפורום הקהילתי של רכסים בצורה מקצועית.
+                            <br/>פתיחת נושאים, עריכה מתקדמת עם תצוגה מקדימה והכרת כרטיסי המשתמש.
                         </p>
                     </div>
                     <div className="max-w-4xl mx-auto space-y-4 px-4">
-                        {[
-                            { id: 'sim-create', title: 'איך לפתוח נושא חדש ולעצב אותו?', mode: 'create' },
-                            { id: 'sim-reply', title: 'איך להגיב ולצרף תמונות לדיון?', mode: 'reply' },
-                            { id: 'sim-follow', title: 'איך להפעיל מעקב אחרי שרשור?', mode: 'follow' }
-                        ].map(item => (
-                            <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                                <button onClick={() => setOpenItem(openItem === item.id ? null : item.id)} className={`w-full flex items-center justify-between p-6 text-right transition-all ${openItem === item.id ? 'bg-gray-50' : 'hover:bg-gray-50'}`}>
-                                    <span className="font-extrabold text-xl text-[#3e2f1c]">{item.title}</span>
-                                    <svg className={`w-6 h-6 text-[#d4a373] transition-transform ${openItem === item.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        {sections.map(item => (
+                            <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                                <button onClick={() => setOpen(open === item.id ? null : item.id)} className={`w-full flex items-center justify-between p-6 text-right transition-all ${open === item.id ? 'bg-[#fffcf5]' : 'hover:bg-gray-50'}`}>
+                                    <span className={`font-black text-xl ${open === item.id ? 'text-[#337ab7]' : 'text-[#3e2f1c]'}`}>{item.title}</span>
+                                    <svg className={`w-6 h-6 text-[#337ab7] transition-transform ${open === item.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 </button>
-                                {openItem === item.id && <div className="p-4 md:p-8 border-t border-gray-100"><ForumSimulator mode={item.mode} /></div>}
+                                <div className={`transition-all duration-700 ease-in-out overflow-hidden ${open === item.id ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                    {open === item.id && <div className="p-4 md:p-6 border-t"><ForumSimulator mode={item.mode} /></div>}
+                                </div>
                             </div>
                         ))}
                     </div>
-                    <div className="contact-banner mx-auto">
-                        <p className="text-xl font-bold">ליצירת קשר שלחו מייל: <span className="bg-[#d4a373] text-white px-3 py-1 rounded-lg mr-2">rchsnik@gmail.com</span></p>
+                    <div className="max-w-4xl mx-auto mt-12 text-center p-8 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                        <p className="text-[#3e2f1c] font-bold text-lg mb-2">צריכים עזרה נוספת?</p>
+                        <a href="mailto:rchsnik@gmail.com" className="bg-[#337ab7] text-white px-8 py-2.5 rounded-lg font-black hover:bg-[#286090] transition-all inline-block shadow-md">rchsnik@gmail.com</a>
                     </div>
                 </div>
             );

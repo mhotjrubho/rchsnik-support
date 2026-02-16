@@ -13,9 +13,11 @@ export interface Coordinate {
     cursorPos: Coordinate;
     isClicking: boolean;
     activeTool: string | null;
-    selectionRange: { start: number; end: number } | null; // New: For text selection simulation
+    selectionRange: { start: number; end: number } | null;
   }
   
   export interface MarkdownPreviewProps {
     text: string;
   }
+
+  export type SimulatorMode = 'create' | 'reply' | 'follow' | 'user-info';
