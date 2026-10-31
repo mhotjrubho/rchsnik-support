@@ -2,48 +2,52 @@ import React from 'react';
 import { MarkdownPreviewProps } from '../types';
 
 const MarkdownRenderer: React.FC<MarkdownPreviewProps> = ({ text }) => {
-  
   const parseMarkdown = (input: string) => {
-    // 1. Sanitize HTML (basic)
-    let html = input.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-    // 2. Images: ![alt](url) 
-    // We match this BEFORE links so links don't eat the markdown
-    html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded border border-stone-300 my-2" />');
-
-    // 3. Links: [text](url)
-    html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="#" class="text-blue-600 underline hover:text-blue-800">$1</a>');
-
-    // 4. Inline Code: `text`
-    html = html.replace(/`(.*?)`/g, '<code class="bg-stone-200 text-red-600 px-1 py-0.5 rounded font-mono text-xs">$1</code>');
-
-    // 5. Bold: **text**
-    html = html.replace(/\*\*(.*?)\*\*/g, '<b class="text-[#3e2f1c] font-extrabold bg-[#fff5d4] px-1 rounded-sm">$1</b>');
-    
-    // 6. Italic: *text*
-    html = html.replace(/(^|[^*])\*([^*]+)\*/g, '$1<i class="text-[#5c4033] italic">$2</i>');
-
-    // 7. Blockquote: > text
-    html = html.replace(/^&gt; (.*$)/gm, '<blockquote class="border-r-4 border-[#d4a373] pr-3 my-2 text-[#8b7355] italic bg-[#fffdf5] py-1">$1</blockquote>');
-
-    // 8. Unordered List: * text
-    html = html.replace(/^\* (.*$)/gm, '<li class="list-disc mr-5 text-[#3e2f1c] marker:text-[#d4a373]">$1</li>');
-    
-    // 9. Wrap lists
-    if (html.includes('<li')) {
-        html = html.replace(/(<li.*<\/li>)/gs, '<ul class="my-2 space-y-1">$1</ul>');
+    if (!input || input.trim() === '') {
+      return '<span class="text-gray-400 italic text-sm">התצוגה המקדימה תופיע כאן בזמן אמת...</span>';
     }
 
-    // 10. Line breaks
-    html = html.replace(/\n/g, '<br>');
+    let html = input
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
 
-    return { __html: html };
+    // Code blocks `code`
+    html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-100 text-rose-600 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>');
+
+    // Bold: **text**
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-gray-900">$1</strong>');
+    
+    // Italic: *text*
+    html = html.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em class="italic text-gray-800">$2</em>');
+
+    // Strikethrough: ~~text~~
+    html = html.replace(/~~(.*?)~~/g, '<del class="line-through text-gray-500">$1</del>');
+
+    // Blockquotes: > quote
+    html = html.replace(/^&gt;\s?(.*$)/gm, '<blockquote class="border-r-4 border-[#337ab7] pr-3 py-1 my-2 text-gray-600 bg-blue-50/50 rounded-l text-sm italic">$1</blockquote>');
+
+    // Headers: ### Title
+    html = html.replace(/^### (.*$)/gm, '<h4 class="text-base font-bold text-gray-900 mt-2 mb-1">$1</h4>');
+    html = html.replace(/^## (.*$)/gm, '<h3 class="text-lg font-bold text-gray-900 mt-2 mb-1">$1</h3>');
+    html = html.replace(/^# (.*$)/gm, '<h2 class="text-xl font-black text-gray-900 mt-2 mb-1">$1</h2>');
+
+    // Unordered lists: - item
+    html = html.replace(/^\s*-\s+(.*$)/gm, '<li class="mr-4 list-disc text-gray-800">$1</li>');
+
+    // Links: [text](url)
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-[#337ab7] underline font-medium hover:text-[#286090]" target="_blank" rel="noopener noreferrer">$1</a>');
+
+    // Line breaks (convert newlines to <br>, except where block elements were created)
+    html = html.replace(/\n/g, '<br />');
+
+    return html;
   };
 
   return (
     <div 
-        className="text-[#3e2f1c] text-sm leading-relaxed break-words"
-        dangerouslySetInnerHTML={parseMarkdown(text)} 
+      className="text-gray-800 text-[15px] leading-relaxed break-words text-right forum-preview font-heebo"
+      dangerouslySetInnerHTML={{ __html: parseMarkdown(text) }} 
     />
   );
 };

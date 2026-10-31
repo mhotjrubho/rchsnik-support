@@ -3,383 +3,45 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>מרכז ההדרכה - רכוסניק</title>
+    <title>מרכז ההדרכה - פורום רכוסניק</title>
+    <meta name="description" content="An interactive, guided simulation of a forum posting interface with automated cursor and typing effects." />
+    <meta property="og:title" content="מרכז ההדרכה - רכוסניק" />
+    <meta property="og:description" content="הדמיה אינטראקטיבית מותאמת ב-100% לפורום רכוסניק - פתיחת נושאים, עורך מפוצל, מעקב והתראות." />
+    <link rel="icon" type="image/png" href="https://rchsnik.com/assets/uploads/system/site-logo.png" />
     
+    <!-- Google Fonts: Heebo & Assistant matching rchsnik.com -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        body {
-            font-family: 'Heebo', sans-serif;
-            background-color: #f4f7f9;
-            color: #333;
-            margin: 0;
-            overflow-x: hidden;
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              heebo: ['Heebo', 'system-ui', 'sans-serif'],
+              assistant: ['Assistant', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              rchs: {
+                navy: '#01263c',      /* Official forum dark blue */
+                gold: '#caa34b',      /* Official forum gold */
+                amber: '#DC9656',     /* Category 9 community color */
+                blue: '#337ab7',      /* NodeBB link blue */
+                hoverBlue: '#286090',
+                bg: '#f4f7f9',
+                border: '#dcdcdc',
+              }
+            }
+          }
         }
-        .cursor-transition {
-            transition: top 1.8s cubic-bezier(0.45, 0.05, 0.55, 0.95), left 1.8s cubic-bezier(0.45, 0.05, 0.55, 0.95);
-        }
-        @keyframes blink { 50% { opacity: 0; } }
-        .caret-blink { animation: blink 1s step-end infinite; }
-        
-        /* NodeBB Specific tweaks inside simulation */
-        .nodebb-blue { color: #337ab7; }
-        .nodebb-bg-blue { background-color: #337ab7; }
-        .nodebb-btn-primary { 
-            background-color: #337ab7; 
-            color: white;
-            border-radius: 4px;
-            font-weight: 700;
-        }
-        .nodebb-btn-primary:hover { background-color: #286090; }
-        
-        .prose img { max-width: 100%; border-radius: 4px; border: 1px solid #ddd; margin: 10px 0; }
-        .prose b, .prose strong { font-weight: 800; color: #000; }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
-  }
-}
-</script>
-</head>
-<body>
-    <div id="root"></div>
-
-    <script type="text/babel">
-        const { useState, useEffect, useRef, useCallback } = React;
-
-        // Simplified Markdown Parser for Simulation
-        const MarkdownRenderer = ({ text }) => {
-            const parse = (input) => {
-                if (!input) return { __html: "" };
-                let html = input.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                html = html.replace(/\n/g, '<br>');
-                return { __html: html };
-            };
-            return <div className="text-gray-800 text-base leading-relaxed prose prose-sm max-w-none text-right" dangerouslySetInnerHTML={parse(text)} />;
-        };
-
-        const Cursor = ({ position, isClicking }) => (
-            <svg
-                className="absolute w-6 h-6 z-[200] pointer-events-none cursor-transition drop-shadow-md"
-                style={{ top: position.y, left: position.x, transform: `scale(${isClicking ? 0.7 : 1})` }}
-                viewBox="0 0 24 24" fill="white" stroke="black" strokeWidth="1.2"
-            >
-                <path d="M5.65,2.4C5.23,2.4,4.9,2.73,4.9,3.15v15.11c0,0.57,0.61,0.92,1.06,0.57l4.01-3.08l2.67,6.33c0.16,0.38,0.58,0.56,0.95,0.4l2.12-0.9c0.37-0.16,0.55-0.58,0.39-0.95l-2.67-6.33l4.6,0.2c0.55,0.02,0.85-0.63,0.48-1.04L6.15,2.54C6,2.45,5.83,2.4,5.65,2.4z" />
-            </svg>
-        );
-
-        const ForumSimulator = ({ mode }) => {
-            const containerRef = useRef(null);
-            
-            // Interaction Refs
-            const btnNewTopicRef = useRef(null);
-            const btnReplyRef = useRef(null);
-            const btnWatchRef = useRef(null);
-            const watchOptionRef = useRef(null);
-            const inputTitleRef = useRef(null);
-            const editorRef = useRef(null);
-            const btnBoldRef = useRef(null);
-            const btnSubmitRef = useRef(null);
-
-            // User Info Refs
-            const userAvatarRef = useRef(null);
-            const userNameRef = useRef(null);
-            const userBadgeRef = useRef(null);
-            const userRepRef = useRef(null);
-            const userPostsRef = useRef(null);
-
-            const [sim, setSim] = useState({
-                step: 1, instruction: "טוען הדמיה...", isComposerOpen: false, title: "", body: "", isSubmitted: false,
-                cursorPos: { x: 50, y: 50 }, isClicking: false, activeTool: null
-            });
-            const [isMenuOpen, setIsMenuOpen] = useState(false);
-            const [watchStatus, setWatchStatus] = useState('מעקב');
-
-            const wait = (ms) => new Promise(r => setTimeout(r, ms));
-            const getPos = (el) => {
-                if (!containerRef.current || !el) return { x: 0, y: 0 };
-                const c = containerRef.current.getBoundingClientRect();
-                const r = el.getBoundingClientRect();
-                return { x: (r.left - c.left) + (r.width / 2), y: (r.top - c.top) + (r.height / 2) };
-            };
-
-            const type = async (text, field = "body", startText = "") => {
-                let current = startText;
-                for (const char of text) {
-                    current += char;
-                    setSim(prev => ({ ...prev, [field]: current }));
-                    await wait(60);
-                }
-                return current;
-            };
-
-            const run = useCallback(async () => {
-                while (true) {
-                    if (mode === 'create' || mode === 'reply') {
-                        const isCreate = mode === 'create';
-                        setSim(p => ({ ...p, step: 1, instruction: isCreate ? "לפתיחת נושא חדש, לחצו על הכפתור הכחול 'נושא חדש'" : "להוספת תגובה, לחצו על 'הגב' בתחתית הפוסט", isComposerOpen: false, isSubmitted: false, title: "", body: "" }));
-                        await wait(2000);
-                        setSim(p => ({ ...p, cursorPos: getPos(isCreate ? btnNewTopicRef.current : btnReplyRef.current) }));
-                        await wait(2200);
-                        setSim(p => ({ ...p, isClicking: true })); await wait(300);
-                        setSim(p => ({ ...p, isClicking: false, isComposerOpen: true })); await wait(1000);
-
-                        if (isCreate) {
-                            setSim(p => ({ ...p, step: 2, instruction: "הזינו כותרת. שימו לב לחלוקת המסך: עורך מימין ותצוגה מקדימה משמאל" }));
-                            setSim(p => ({ ...p, cursorPos: getPos(inputTitleRef.current) }));
-                            await wait(2200);
-                            await type("שאלה לגבי זמני התפילה ברכסים", "title"); await wait(1000);
-                        }
-
-                        setSim(p => ({ ...p, step: isCreate ? 3 : 2, instruction: "כתבו את ההודעה. התצוגה המקדימה משמאל מתעדכנת בזמן אמת" }));
-                        setSim(p => ({ ...p, cursorPos: getPos(editorRef.current) }));
-                        await wait(2200);
-                        let b = await type(isCreate ? "שלום, מישהו יודע מתי מנחה גדולה בבית הכנסת " : "בדרך כלל בשעה 13:15. כדאי לבדוק בלוח המודעות.");
-                        
-                        setSim(p => ({ ...p, instruction: "נשתמש בכלי ההדגשה (B) כדי לעצב את הטקסט", cursorPos: getPos(btnBoldRef.current) }));
-                        await wait(2200);
-                        setSim(p => ({ ...p, isClicking: true, activeTool: 'bold' })); await wait(250);
-                        setSim(p => ({ ...p, isClicking: false, cursorPos: getPos(editorRef.current) }));
-                        await wait(1200);
-                        b = await type("**המרכזי**", "body", b);
-                        setSim(p => ({ ...p, activeTool: null })); await wait(2000);
-
-                        setSim(p => ({ ...p, step: isCreate ? 4 : 3, instruction: "כפתור השליחה נמצא תמיד בצד שמאל למעלה", cursorPos: getPos(btnSubmitRef.current) }));
-                        await wait(2200);
-                        setSim(p => ({ ...p, isClicking: true })); await wait(300);
-                        setSim(p => ({ ...p, isClicking: false, isSubmitted: true, isComposerOpen: false }));
-                        await wait(5000);
-                    } else if (mode === 'follow') {
-                        setIsMenuOpen(false); setWatchStatus('מעקב');
-                        setSim(p => ({ ...p, step: 1, instruction: "לחצו על כפתור המעקב (הפעמון) כדי לנהל התראות", isComposerOpen: false, isSubmitted: false }));
-                        await wait(2000);
-                        setSim(p => ({ ...p, cursorPos: getPos(btnWatchRef.current) }));
-                        await wait(2200);
-                        setSim(p => ({ ...p, isClicking: true })); await wait(300);
-                        setSim(p => ({ ...p, isClicking: false })); setIsMenuOpen(true); await wait(1500);
-                        
-                        setSim(p => ({ ...p, step: 2, instruction: "בחרו ב-'עוקב' כדי לקבל התראה על כל תגובה חדשה" }));
-                        setSim(p => ({ ...p, cursorPos: getPos(watchOptionRef.current) }));
-                        await wait(2200);
-                        setSim(p => ({ ...p, isClicking: true })); await wait(300);
-                        setSim(p => ({ ...p, isClicking: false })); setIsMenuOpen(false); setWatchStatus('עוקב');
-                        setSim(p => ({ ...p, instruction: "מעולה! כעת אתם עוקבים אחרי הנושא הזה." }));
-                        await wait(5000);
-                    } else if (mode === 'user-info') {
-                        setSim(p => ({ ...p, step: 1, instruction: "בצד ימין של כל פוסט מופיע כרטיס המשתמש עם פרטיו" }));
-                        await wait(3500);
-                        
-                        setSim(p => ({ ...p, step: 2, instruction: "זוהי תמונת המשתמש. היא עוזרת לזיהוי מהיר של הכותב" }));
-                        setSim(p => ({ ...p, cursorPos: getPos(userAvatarRef.current) })); await wait(4000);
-
-                        setSim(p => ({ ...p, step: 3, instruction: "שם המשתמש. לחיצה עליו תוביל לפרופיל האישי שלו" }));
-                        setSim(p => ({ ...p, cursorPos: getPos(userNameRef.current) })); await wait(4000);
-
-                        setSim(p => ({ ...p, step: 4, instruction: "כאן מופיעה הדרגה או הקבוצה (למשל: צוות פיקוח)" }));
-                        setSim(p => ({ ...p, cursorPos: getPos(userBadgeRef.current) })); await wait(4000);
-
-                        setSim(p => ({ ...p, step: 5, instruction: "המוניטין מראה את הערכת הקהילה (כמות הלייקים שקיבל)" }));
-                        setSim(p => ({ ...p, cursorPos: getPos(userRepRef.current) })); await wait(5000);
-                    }
-                }
-            }, [mode]);
-
-            useEffect(() => { run(); }, [run]);
-
-            const PostTemplate = ({ user, isSubmitted }) => (
-                <div className={`border-b border-gray-100 flex group ${isSubmitted ? 'bg-blue-50/20 animate-pulse' : 'bg-white'}`}>
-                    {/* User Sidebar - Matched to NodeBB Source */}
-                    <div className="w-32 p-4 bg-gray-50/50 flex flex-col items-center border-l border-gray-100 shrink-0">
-                        <div ref={user.ref?.avatar} className={`w-16 h-16 rounded-full text-white flex items-center justify-center text-2xl font-black mb-2 shadow-sm ${user.avatarBg}`}>
-                            {user.initial}
-                        </div>
-                        <a ref={user.ref?.name} href="#" className="font-bold text-xs text-[#337ab7] text-center mb-1 hover:underline">{user.name}</a>
-                        {user.badge && (
-                            <div ref={user.ref?.badge} className="bg-black text-white text-[9px] px-2 py-0.5 rounded-sm font-bold uppercase tracking-tighter mb-4">
-                                {user.badge}
-                            </div>
-                        )}
-                        <div className="flex flex-col gap-1 items-center">
-                            <span ref={user.ref?.posts} className="text-[9px] text-gray-400">פוסטים: <b className="text-gray-600">{user.posts}</b></span>
-                            <span ref={user.ref?.rep} className="text-[9px] text-gray-400">מוניטין: <b className="text-gray-600">{user.rep}</b></span>
-                        </div>
-                    </div>
-                    {/* Post Body */}
-                    <div className="flex-1 p-6 relative text-right">
-                        <div className="text-xs text-gray-400 mb-4 font-bold flex justify-between flex-row-reverse">
-                            <span>{user.postNum}</span><span>{user.time}</span>
-                        </div>
-                        <div className="text-lg text-[#333] leading-relaxed mb-10">
-                           {isSubmitted ? <MarkdownRenderer text={sim.body} /> : user.content}
-                        </div>
-                        <div className="absolute bottom-4 left-6">
-                            <button ref={btnReplyRef} className="text-[#337ab7] font-bold text-sm hover:underline flex items-center gap-1">
-                                הגב <i className="fa fa-reply"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-
-            return (
-                <div ref={containerRef} className="relative w-full mx-auto bg-white border-2 border-[#d4a373] rounded-xl shadow-lg overflow-hidden select-none h-[680px]">
-                    {/* Instruction Alert */}
-                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[150] w-[90%] max-w-lg">
-                        <div className="bg-[#3e2f1c] text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 border-2 border-[#d4a373]">
-                            <div className="bg-[#d4a373] w-10 h-10 rounded-full flex items-center justify-center font-black text-xl shrink-0">{sim.step}</div>
-                            <div className="text-base font-bold leading-tight">{sim.instruction}</div>
-                        </div>
-                    </div>
-
-                    <div className="relative bg-[#f4f7f9] h-full flex flex-col overflow-hidden">
-                        {/* Fake Navbar */}
-                        <header className="bg-white h-14 border-b border-gray-200 flex items-center px-6 justify-between shrink-0 shadow-sm z-10">
-                            <div className="flex gap-8 items-center">
-                                <span className="text-[#337ab7] font-black text-2xl tracking-tighter">רכוסניק</span>
-                            </div>
-                            <div className="w-8 h-8 bg-[#f44336] rounded-full flex items-center justify-center text-white text-[10px] font-bold">ח</div>
-                        </header>
-
-                        <div className={`flex-1 overflow-y-auto transition-all duration-700 ${sim.isComposerOpen ? 'opacity-20 blur-sm' : ''}`}>
-                            {mode === 'create' ? (
-                                <div className="p-8 max-w-4xl mx-auto">
-                                    <div className="flex justify-between items-center mb-8 pb-4 border-b">
-                                        <h2 className="text-2xl font-black text-[#333]">קהילה ודיבורים</h2>
-                                        <button ref={btnNewTopicRef} className="nodebb-btn-primary px-6 py-2 text-sm shadow-sm">נושא חדש</button>
-                                    </div>
-                                    {sim.isSubmitted && <PostTemplate user={{ name: 'חצקל', initial: 'ח', posts: 122, rep: 89, time: 'זה עתה', postNum: '#1', avatarBg: 'bg-[#f44336]', ref: {} }} isSubmitted={true} />}
-                                </div>
-                            ) : (
-                                <div className="max-w-4xl mx-auto">
-                                    <div className="p-6 bg-white border-b flex justify-between items-center sticky top-0 z-20">
-                                        <h1 className="text-2xl font-black text-[#333]">משטרה בלב אליהו</h1>
-                                        {mode === 'follow' && (
-                                            <div className="relative">
-                                                <button ref={btnWatchRef} className={`flex items-center gap-2 px-4 py-1.5 rounded border text-sm font-bold ${watchStatus === 'עוקב' ? 'bg-[#5cb85c] text-white border-[#4cae4c]' : 'bg-white text-gray-600'}`}>
-                                                    <i className={`fa ${watchStatus === 'עוקב' ? 'fa-bell' : 'fa-bell-slash'}`}></i> {watchStatus}
-                                                </button>
-                                                {isMenuOpen && (
-                                                    <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-lg shadow-xl z-50 overflow-hidden">
-                                                        <a ref={watchOptionRef} href="#" className="block p-3 hover:bg-gray-50 text-sm font-bold border-b text-right">עוקב</a>
-                                                        <a href="#" className="block p-3 hover:bg-gray-50 text-sm text-gray-400 text-right">לא עוקב</a>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <PostTemplate user={{ name: 'כאן-לעזור', initial: 'כ', posts: 62, rep: 89, time: 'לפני יום', postNum: '#1', badge: 'צוות פיקוח', content: 'בודקים רכב רכב על חגורות בכיכר הכניסה.', avatarBg: 'bg-[#e91e63]', ref: {avatar: userAvatarRef, name: userNameRef, badge: userBadgeRef, rep: userRepRef, posts: userPostsRef} }} />
-                                    {sim.isSubmitted && <PostTemplate user={{ name: 'חצקל', initial: 'ח', posts: 122, rep: 89, time: 'זה עתה', postNum: '#2', avatarBg: 'bg-[#f44336]', ref: {} }} isSubmitted={true} />}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* NodeBB Split-View Composer */}
-                        <div className={`absolute bottom-0 left-0 w-full bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.15)] border-t border-gray-200 flex flex-col transition-all duration-700 z-40`} style={{ height: '520px', transform: sim.isComposerOpen ? 'translateY(0)' : 'translateY(100%)' }}>
-                            {/* TOP HEADER: SUBMIT ON LEFT */}
-                            <div className="px-4 py-2 border-b bg-gray-50 flex justify-between items-center shrink-0">
-                                <div className="flex items-center gap-1">
-                                    <button ref={btnSubmitRef} className="nodebb-bg-blue text-white px-6 py-1.5 rounded-md font-bold text-sm shadow hover:bg-[#286090] flex items-center gap-2">
-                                        <i className="fa fa-check"></i> שליחה
-                                    </button>
-                                    <button className="text-gray-500 font-bold text-sm px-4">ביטול</button>
-                                    <button className="text-gray-400 p-2"><i className="fa fa-angle-down"></i></button>
-                                </div>
-                                <span className="font-bold text-[#333] text-sm">{mode === 'create' ? 'פתיחת נושא חדש' : 'תגובה ל"משטרה בלב אליהו"'}</span>
-                                <div className="w-10"></div>
-                            </div>
-                            
-                            {mode === 'create' && (
-                                <div className="px-4 py-2 border-b flex items-center gap-2 bg-white">
-                                    <div className="bg-[#DC9656] w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] shrink-0"><i className="fa fa-right-left"></i></div>
-                                    <input ref={inputTitleRef} className="flex-1 border border-gray-300 px-4 py-2 rounded-md font-bold text-sm focus:outline-none focus:border-[#337ab7]" placeholder="הכניסו את כותרת הנושא כאן..." value={sim.title} readOnly dir="rtl" />
-                                </div>
-                            )}
-
-                            <div className="flex items-center gap-1.5 px-4 py-2 border-b bg-gray-50 shrink-0 overflow-x-auto">
-                                <button ref={btnBoldRef} className={`w-8 h-8 flex items-center justify-center rounded transition-all text-xs font-black ${sim.activeTool === 'bold' ? 'nodebb-bg-blue text-white' : 'text-gray-500 hover:bg-gray-200'}`}>B</button>
-                                <button className="w-8 h-8 flex items-center justify-center rounded text-gray-500 italic">I</button>
-                                <div className="w-[1px] h-5 bg-gray-300 mx-1"></div>
-                                <button className="w-8 h-8 flex items-center justify-center rounded text-gray-500"><i className="fa fa-link"></i></button>
-                                <button className="w-8 h-8 flex items-center justify-center rounded text-gray-500"><i className="fa fa-picture-o"></i></button>
-                                <button className="w-8 h-8 flex items-center justify-center rounded text-gray-500">≡</button>
-                                <div className="flex-1"></div>
-                                <div className="flex items-center gap-2 text-[11px] font-bold text-[#337ab7] px-2">
-                                   <i className="fa fa-eye"></i> הצגת תצוגה מקדימה
-                                </div>
-                            </div>
-
-                            {/* Split Pane Area */}
-                            <div className="flex-1 flex overflow-hidden">
-                                {/* Editor (Right side in RTL) */}
-                                <div className="w-1/2 h-full border-l border-gray-200 flex flex-col p-4 bg-white">
-                                    <div className="text-[10px] font-black text-gray-300 uppercase mb-2 tracking-widest">עורך טקסט</div>
-                                    <textarea ref={editorRef} className="flex-1 text-base font-medium focus:outline-none resize-none leading-relaxed text-[#333] placeholder-gray-300 w-full" value={sim.body} readOnly dir="rtl" />
-                                    <span className="inline-block w-[2px] h-5 nodebb-bg-blue absolute right-6 caret-blink" style={{top: '120px'}}></span>
-                                </div>
-                                {/* Live Preview (Left side in RTL) */}
-                                <div className="w-1/2 h-full bg-gray-50/70 p-4 overflow-y-auto">
-                                    <div className="text-[10px] font-black text-gray-300 uppercase mb-2 tracking-widest">תצוגה מקדימה</div>
-                                    <MarkdownRenderer text={sim.body || "ממתין לטקסט..."} />
-                                </div>
-                            </div>
-                        </div>
-                        <Cursor position={sim.cursorPos} isClicking={sim.isClicking} />
-                    </div>
-                </div>
-            );
-        };
-
-        const App = () => {
-            const [open, setOpen] = useState('sim-create');
-            const sections = [
-                { id: 'sim-create', title: '1. איך לפתוח נושא חדש ולעצב אותו?', mode: 'create' },
-                { id: 'sim-reply', title: '2. איך להגיב עם עורך מפוצל (Split-View)?', mode: 'reply' },
-                { id: 'sim-follow', title: '3. ניהול מעקב והתראות אחר נושאים', mode: 'follow' },
-                { id: 'user-info', title: '4. הכרת אזור המשתמש והמוניטין', mode: 'user-info' },
-            ];
-
-            return (
-                <div className="min-h-screen pb-20">
-                    <div className="bg-gradient-to-r from-[#3e2f1c] to-[#5c4b36] py-16 px-4 text-center text-white mb-10 shadow-lg border-b-4 border-[#d4a373]">
-                        <h1 className="font-black text-5xl mb-4 drop-shadow-md text-right max-w-4xl mx-auto">מרכז ההדרכה של <span className="text-[#d4a373]">רכוסניק</span></h1>
-                        <p className="text-xl opacity-90 font-medium max-w-4xl mx-auto text-right leading-relaxed">
-                            גלו איך להשתמש בפורום הקהילתי של רכסים בצורה מקצועית.
-                            <br/>פתיחת נושאים, עריכה מתקדמת עם תצוגה מקדימה והכרת כרטיסי המשתמש.
-                        </p>
-                    </div>
-                    <div className="max-w-4xl mx-auto space-y-4 px-4">
-                        {sections.map(item => (
-                            <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                <button onClick={() => setOpen(open === item.id ? null : item.id)} className={`w-full flex items-center justify-between p-6 text-right transition-all ${open === item.id ? 'bg-[#fffcf5]' : 'hover:bg-gray-50'}`}>
-                                    <span className={`font-black text-xl ${open === item.id ? 'text-[#337ab7]' : 'text-[#3e2f1c]'}`}>{item.title}</span>
-                                    <svg className={`w-6 h-6 text-[#337ab7] transition-transform ${open === item.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                </button>
-                                <div className={`transition-all duration-700 ease-in-out overflow-hidden ${open === item.id ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                                    {open === item.id && <div className="p-4 md:p-6 border-t"><ForumSimulator mode={item.mode} /></div>}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="max-w-4xl mx-auto mt-12 text-center p-8 bg-white rounded-2xl border border-gray-200 shadow-sm">
-                        <p className="text-[#3e2f1c] font-bold text-lg mb-2">צריכים עזרה נוספת?</p>
-                        <a href="mailto:rchsnik@gmail.com" className="bg-[#337ab7] text-white px-8 py-2.5 rounded-lg font-black hover:bg-[#286090] transition-all inline-block shadow-md">rchsnik@gmail.com</a>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+      }
     </script>
+    <link rel="stylesheet" href="/index.css">
+</head>
+<body class="font-heebo bg-[#f4f7f9] text-[#212529] antialiased selection:bg-[#caa34b]/20 selection:text-[#01263c]">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
