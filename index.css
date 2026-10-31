@@ -1,33 +1,70 @@
 @layer utilities {
   .cursor-smooth {
-    transition: top 0.9s cubic-bezier(0.22, 1, 0.36, 1), 
-                left 0.9s cubic-bezier(0.22, 1, 0.36, 1), 
+    transition: top 0.85s cubic-bezier(0.22, 1, 0.36, 1), 
+                left 0.85s cubic-bezier(0.22, 1, 0.36, 1), 
                 transform 0.15s ease-out;
   }
 }
 
-@keyframes pulse-ring {
-  0% {
-    transform: scale(0.6);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(2.2);
-    opacity: 0;
-  }
+/* Exact NodeBB Harmony (client-rtl.css) styles & variables */
+:root {
+  --bs-primary: #0d6efd;
+  --bs-secondary: #6c757d;
+  --bs-success: #198754;
+  --bs-info: #0dcaf0;
+  --bs-warning: #ffc107;
+  --bs-danger: #dc3545;
+  --bs-light: #f8f9fa;
+  --bs-dark: #212529;
+  --bs-body-bg: #ffffff;
+  --bs-body-color: #212529;
+  --bs-border-color: #dee2e6;
+  --btn-ghost-hover-color: #ebeced;
 }
 
-.animate-pulse-ring {
-  animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+.harmony-btn-ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: #212529;
+  transition: background-color 0.15s ease-in-out;
 }
 
-@keyframes blink-caret {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+.harmony-btn-ghost:hover {
+  background-color: var(--btn-ghost-hover-color);
 }
 
-.caret-blink {
-  animation: blink-caret 0.9s step-end infinite;
+.harmony-breadcrumb-item + .harmony-breadcrumb-item::before {
+  content: "←";
+  padding-left: 0.45rem;
+  padding-right: 0.45rem;
+  color: #6c757d;
+}
+
+/* Exact Rchsnik.com ACP Custom CSS for Upvote / Downvote emojis */
+.rchsnik-vote-emoji {
+  display: inline-block;
+  font-family: system-ui, "Apple Color Emoji", "Segoe UI Emoji", emoji !important;
+  font-size: 17px;
+  line-height: 1;
+  filter: grayscale(100%) brightness(0.8);
+  opacity: 0.9;
+  transition: filter 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+}
+
+.rchsnik-vote-emoji.active {
+  filter: grayscale(0%) brightness(1) !important;
+  opacity: 1 !important;
+  transform: scale(1.12);
+}
+
+/* Forum Markdown Blockquote matching NodeBB Harmony RTL */
+.forum-preview blockquote {
+  border-right: 4px solid #dee2e6;
+  padding: 0.5rem 0.85rem;
+  margin: 0.5rem 0;
+  background-color: #f8f9fa;
+  color: #495057;
+  border-radius: 0.25rem 0 0 0.25rem;
 }
 
 /* Custom scrollbars */
@@ -37,14 +74,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f8f9fa;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #ced4da;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #adb5bd;
 }
